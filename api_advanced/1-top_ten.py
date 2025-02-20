@@ -1,23 +1,37 @@
 #!/usr/bin/python3
-""" Exporting csv files"""
-import json
 import requests
-import sys
 
+def recurse(subreddit, hot_list=[], after=None):
+    """Recursively queries Reddit API to get the titles of hot posts for a given subreddit."""
+    
+    # Reddit API URL with parameters to get hot posts
+    url = f"https://www.reddit.com/r/{subreddit}/hot.json"
+    
+    # Adding 'after' if it exists to handle pagination
+    params = {'after': after} if after else {}
+    
+    # Send a GET request to Reddit API
+    headers = {'User-Agent': 'python3:redditapi:v1.0 (by /u/yourusername)'}
+    response = requests.get(url, headers=headers, params=params, allow_redirects=False)
+    
+    # Check for valid response
+    if response.status_code != 200:
+        return None  # Return None if the subreddit is invalid or any error occurs
+    
+    data = response.json()
+    
+    # Check if data contains 'data' and 'children' (list of posts)
+    if 'data' in data and 'children' in data['data']:
+        for post in data['data']['children']:
+            hot_list.append(post['data']['title'])
+        
+        # Check if there is another page of posts (pagination)
+        after = data['data'].get('after', None)
+        
+        # If 'after' exists, recursively call the function with the new 'after' value
+        if after:
+            return recurse(subreddit, hot_list, after)
+    
+    # Return the final hot list when no further pages exist
+    return hot_list if hot_list else None
 
-def top_ten(subreddit):
-    """Read reddit API and return top 10 hotspots """
-    username = 'ledbag123'
-    password = 'Reddit72'
-    user_pass_dict = {'user': username, 'passwd': password, 'api_type': 'json'}
-    headers = {'user-agent': '/u/ledbag123 API Python for Holberton School'}
-    url = 'https://www.reddit.com/r/{}/hot.json'.format(subreddit)
-    client = requests.session()
-    client.headers = headers
-    r = client.get(url, allow_redirects=False)
-    if r.status_code == 200:
-        list_titles = r.json()['data']['children']
-        for a in list_titles[:10]:
-            print(a['data']['title'])
-    else:
-        return(print("None"))
