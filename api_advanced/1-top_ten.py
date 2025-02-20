@@ -1,37 +1,31 @@
 #!/usr/bin/python3
+
 import requests
 
-def recurse(subreddit, hot_list=[], after=None):
-    """Recursively queries Reddit API to get the titles of hot posts for a given subreddit."""
-    
-    # Reddit API URL with parameters to get hot posts
+def top_ten(subreddit):
+    """Queries the Reddit API and prints the titles of the first 10 hot posts for a given subreddit."""
+
+    # Reddit API URL for getting hot posts
     url = f"https://www.reddit.com/r/{subreddit}/hot.json"
-    
-    # Adding 'after' if it exists to handle pagination
-    params = {'after': after} if after else {}
-    
-    # Send a GET request to Reddit API
+
+    # Send GET request to Reddit API
     headers = {'User-Agent': 'python3:redditapi:v1.0 (by /u/yourusername)'}
-    response = requests.get(url, headers=headers, params=params, allow_redirects=False)
-    
-    # Check for valid response
+    response = requests.get(url, headers=headers, allow_redirects=False)
+
+    # If the subreddit is invalid or response code is not 200 (OK)
     if response.status_code != 200:
-        return None  # Return None if the subreddit is invalid or any error occurs
-    
+        print(None)
+        return
+
+    # Parse the JSON response
     data = response.json()
-    
-    # Check if data contains 'data' and 'children' (list of posts)
+
+    # Check if data contains the 'children' key, which holds the posts
     if 'data' in data and 'children' in data['data']:
-        for post in data['data']['children']:
-            hot_list.append(post['data']['title'])
-        
-        # Check if there is another page of posts (pagination)
-        after = data['data'].get('after', None)
-        
-        # If 'after' exists, recursively call the function with the new 'after' value
-        if after:
-            return recurse(subreddit, hot_list, after)
-    
-    # Return the final hot list when no further pages exist
-    return hot_list if hot_list else None
+        # Loop through the first 10 posts and print their titles
+        for i in range(min(10, len(data['data']['children']))):
+            print(data['data']['children'][i]['data']['title'])
+    else:
+        # If no posts are found, print None
+        print(None)
 
