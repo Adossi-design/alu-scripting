@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 """
-This module retrieves the titles of the top 10 hot posts
-from a specified subreddit using the Reddit API.
-If the subreddit is invalid, it prints None.
+This script retrieves the titles of the top 10 hot posts from a given
+subreddit. It prints the titles, one per line.
+If the subreddit is invalid or an error occurs, it prints "None".
 """
 
 import json
@@ -12,28 +12,27 @@ import sys  # Required to get command line arguments
 
 def top_ten(subreddit):
     """
-    Prints the titles of the top 10 hot posts from a subreddit.
-    Prints None if the subreddit is invalid.
+    Queries the Reddit API and prints the titles of the first 10 hot posts
+    for the given subreddit. If the subreddit is not valid, prints "None".
     """
     url = f"https://www.reddit.com/r/{subreddit}/hot.json?limit=10"
-    headers = {'User-Agent': 'alu-scripting/1.0 (by /u/YourRedditUsername)'} # Replace with your Reddit username
+    headers = {'User-Agent': 'alu-scripting/1.0 (by /u/YourRedditUsername)'}  #  REPLACE with your Reddit username
 
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx status codes)
         data = response.json()
 
-
         if 'data' in data and 'children' in data['data']:
             for post in data['data']['children']:
-                print(post['data']['title']) # ONLY print titles
+                print(post['data']['title'])  # Print titles only
         else:
-            print("None")  # Print None if no posts are found (possible for valid, but empty subreddits)
+            print("None")  # Handle no posts found (valid but empty subreddits)
 
-    except requests.exceptions.RequestException as e:
-        print("None") # Print None if there is a request exception (eg. 404)
-    except json.JSONDecodeError as e:
-        print("None")  # Print None if the JSON is invalid
+    except requests.exceptions.RequestException:
+        print("None")  # Handle request errors (e.g., 404 for invalid subreddit)
+    except json.JSONDecodeError:
+        print("None")  # Handle JSON decoding errors
     except Exception:
         print("None")
 
