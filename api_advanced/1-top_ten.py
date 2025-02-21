@@ -3,23 +3,29 @@
 Query Reddit API for titles of top ten posts of a given subreddit
 """
 import requests
+import json
+import sys  # Import sys to access command line arguments
 
 
 def top_ten(subreddit):
-    """
-        return top ten titles for a given subreddit
-        return None if invalid subreddit given
-    """
-    # get user agent
-    # https://stackoverflow.com/questions/10606133/ -->
-    # sending-user-agent-using-requests-library-in-python
-    headers = requests.utils.default_headers()
-    headers.update({'User-Agent': 'My User Agent 1.0'})
+    url = f"https://www.reddit.com/r/{subreddit}/hot.json?limit=10"
+    headers = {'User-Agent': 'alu-scripting/1.0 (by /u/my_reddit_username)'} # Replace with your info
 
-    url = "https://www.reddit.com/r/{}/hot.json?limit=10".format(subreddit)
-    r = requests.get(url, headers=headers).json()
-    top_ten = r.get('data', {}).get('children', [])
-    if not top_ten:
-        print(None)
-    for t in top_ten:
-        print(t.get('data').get('title'))
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+        data = response.json()
+
+        if 'data' in data and 'children' in data['data']:
+            for post in data['data']['children']:
+                print(post['data']['title'])  # Print the titles ONLY
+
+    except Exception: # Catch any exception and ignore
+       pass
+
+
+
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        subreddit_name = sys.argv[1]
+        top_ten(subreddit_name)
