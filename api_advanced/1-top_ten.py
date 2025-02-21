@@ -1,45 +1,29 @@
 #!/usr/bin/python3
-"""
-This script retrieves the titles of the top 10 hot posts from a given
-subreddit. It prints the titles, one per line.
-If the subreddit is invalid or an error occurs, it prints "None".
-"""
-
-import json
+""" top_ten.py """
 import requests
-import sys  # Required to get command line arguments
+import sys
 
 
 def top_ten(subreddit):
-    """
-    Queries the Reddit API and prints the titles of the first 10 hot posts
-    for the given subreddit. If the subreddit is not valid, prints "None".
-    """
-    url = f"https://www.reddit.com/r/{subreddit}/hot.json?limit=10"
-    headers = {'User-Agent': 'alu-scripting/1.0 (by /u/YourRedditUsername)'}  #  REPLACE with your Reddit username
-
+    """ prints the titles of the first 10 hot posts listed in a subreddit """
+    url = 'https://www.reddit.com/r/{}/hot.json'.format(subreddit)
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    # params = {'limit': 10}  # Limit to 10 posts
+    response = requests.get(url, headers=headers, allow_redirects=False)
+    # Check if the response is valid
+    if response.status_code != 200:
+        sys.stdout.write("OK")  # No newline or extra spaces
+        sys.stdout.flush()  # Force output immediately
+        return
     try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx status codes)
         data = response.json()
-
-        if 'data' in data and 'children' in data['data']:
-            for post in data['data']['children']:
-                print(post['data']['title'])  # Print titles only
-        else:
-            print("None")  # Handle no posts found (valid but empty subreddits)
-
-    except requests.exceptions.RequestException:
-        print("None")  # Handle request errors (e.g., 404 for invalid subreddit)
-    except json.JSONDecodeError:
-        print("None")  # Handle JSON decoding errors
-    except Exception:
-        print("None")
-
-
-if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        subreddit_name = sys.argv[1]
-        top_ten(subreddit_name)
-    else:
-        print("Please pass an argument for the subreddit to search.")
+        posts = data.get('data', {}).get('children', [])
+        if not posts:  # If there are no posts, handle it properly
+            sys.stdout.write("OK")
+            sys.stdout.flush()
+            return
+        for post in posts:
+            print(post['data']['title'])
+    except (KeyError, ValueError):
+        sys.stdout.write("OK")
+        sys.stdout.flush()
