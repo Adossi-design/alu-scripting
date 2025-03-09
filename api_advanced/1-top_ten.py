@@ -1,29 +1,24 @@
 #!/usr/bin/python3
-""" top_ten.py """
+'''
+    this module contains the function top_ten
+'''
 import requests
-import sys
+from sys import argv
 
 
 def top_ten(subreddit):
-    """ prints the titles of the first 10 hot posts listed in a subreddit """
-    url = 'https://www.reddit.com/r/{}/hot.json'.format(subreddit)
-    headers = {'User-Agent': 'Mozilla/5.0'}
-    # params = {'limit': 10}  # Limit to 10 posts
-    response = requests.get(url, headers=headers, allow_redirects=False)
-    # Check if the response is valid
-    if response.status_code != 200:
-        sys.stdout.write("OK")  # No newline or extra spaces
-        sys.stdout.flush()  # Force output immediately
-        return
+    '''
+        returns the top ten posts for a given subreddit
+    '''
+    user = {'User-Agent': 'Lizzie'}
+    url = requests.get('https://www.reddit.com/r/{}/hot/.json?limit=10'
+                       .format(subreddit), headers=user).json()
     try:
-        data = response.json()
-        posts = data.get('data', {}).get('children', [])
-        if not posts:  # If there are no posts, handle it properly
-            sys.stdout.write("OK")
-            sys.stdout.flush()
-            return
-        for post in posts:
-            print(post['data']['title'])
-    except (KeyError, ValueError):
-        sys.stdout.write("OK")
-        sys.stdout.flush()
+        for post in url.get('data').get('children'):
+            print(post.get('data').get('title'))
+    except Exception:
+        print(None)
+
+
+if __name__ == "__main__":
+    top_ten(argv[1])
